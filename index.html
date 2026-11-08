@@ -238,8 +238,8 @@ const CARDS = [
   { id: 'spring', name: 'Пружинка',       col: '#7be0c3', desc: '+1 прыжок в воздухе и прыжки на 15% выше.', apply: s => { s.airJumps += 1; s.jump *= 1.15; } },
   { id: 'mag',    name: 'Запасливый',     col: '#d6c35a', desc: '+3 патрона и перезарядка на 25% быстрее.', apply: s => { s.ammo += 3; s.reload *= .75; } },
   { id: 'sniper', name: 'Снайпер',        col: '#9aa7ff', desc: 'Пули в 1,7 раза быстрее, почти не падают, +25% урона.', apply: s => { s.bSpeed *= 1.7; s.bGrav *= .3; s.dmg *= 1.25; s.fireDelay *= 1.15; } },
-  { id: 'hedge',  name: 'Ёжик',           col: '#a0763f', desc: 'Щит выпускает 8 пуль во все стороны.', apply: s => { s.thorns += 8; } },
-  { id: 'jetsh',  name: 'Реактивный щит', col: '#4fd6ff', desc: 'Щит перезаряжается на 45% быстрее.', apply: s => { s.blockCd *= .55; } },
+  { id: 'hedge',  name: 'Ёжик',           col: '#a0763f', desc: 'Щит выпускает 8 пуль во все стороны. Перезарядка щита +0,8 с.', apply: s => { s.thorns += 8; s.blockCd += .8; } },
+  { id: 'jetsh',  name: 'Реактивный щит', col: '#4fd6ff', desc: 'Щит перезаряжается на 30% быстрее, но держится на 25% меньше.', apply: s => { s.blockCd *= .7; s.blockDur *= .75; } },
   { id: 'ram',    name: 'Таран',          col: '#d1d1d1', desc: 'Попадания отбрасывают врага в 2,5 раза сильнее.', apply: s => { s.knock *= 2.5; s.dmg *= 1.1; } },
   { id: 'melon',  name: 'Арбуз',          col: '#4caf50', desc: 'Пули в 2 раза больше и на 20% больнее, но медленнее.', apply: s => { s.bR *= 2; s.dmg *= 1.2; s.bSpeed *= .85; } },
   { id: 'quick',  name: 'Шустрик',        col: '#ffe066', desc: '+30% скорости, шарик меньше, −20% здоровья.', apply: s => { s.speed *= 1.3; s.size *= .8; s.hpMul *= .8; } },
@@ -248,19 +248,19 @@ const CARDS = [
   { id: 'venom',  name: 'Жгучка',         col: '#7ed957', desc: 'Попадание отравляет: 4 урона в секунду 3 секунды.', apply: s => { s.poison += 4; } },
   { id: 'needle', name: 'Игла',           col: '#c7d2fe', desc: 'Пуля пробивает одного врага и летит дальше.', apply: s => { s.pierce += 1; } },
   { id: 'shard',  name: 'Осколки',        col: '#b0bec5', desc: 'Ударившись о стену, пуля разлетается на 3 осколка.', apply: s => { s.split += 3; } },
-  { id: 'blink',  name: 'Рывок',          col: '#80deea', desc: 'Щит переносит тебя на 200 вперёд по прицелу.', apply: s => { s.blink += 200; } },
-  { id: 'mirror', name: 'Зеркальце',      col: '#e1f5fe', desc: 'Щит отражает пули обратно в стрелка.', apply: s => { s.reflect = true; }, unique: true },
+  { id: 'blink',  name: 'Рывок',          col: '#80deea', desc: 'Щит переносит тебя на 200 вперёд по прицелу. Перезарядка щита +0,6 с.', apply: s => { s.blink += 200; s.blockCd += .6; } },
+  { id: 'mirror', name: 'Зеркальце',      col: '#e1f5fe', desc: 'Щит отражает пули обратно в стрелка. Перезарядка щита +1,2 с.', apply: s => { s.reflect = true; s.blockCd += 1.2; }, unique: true },
   { id: 'last',   name: 'Последний шанс', col: '#ff6b6b', desc: 'Когда здоровья меньше 30%: +60% урона и +30% скорости.', apply: s => { s.last = true; }, unique: true },
   { id: 'grow',   name: 'Разгон',         col: '#ffab40', desc: 'Пуля набирает урон в полёте: +100% за каждую секунду.', apply: s => { s.grow += 1; } },
   { id: 'kick',   name: 'Отдача',         col: '#a1887f', desc: 'Выстрел сильно толкает тебя назад. Можно летать!', apply: s => { s.recoil += 420; s.airJumps += 1; } },
-  { id: 'patch',  name: 'Пластырь',       col: '#f8bbd0', desc: 'Щит лечит 20 здоровья.', apply: s => { s.blockHeal += 20; } },
+  { id: 'patch',  name: 'Пластырь',       col: '#f8bbd0', desc: 'Щит лечит 20 здоровья. Перезарядка щита +1 с.', apply: s => { s.blockHeal += 20; s.blockCd += 1; } },
   { id: 'burst',  name: 'Очередь',        col: '#ffcc80', desc: 'Каждый выстрел — очередь из 3 пуль, урон −40%.', apply: s => { s.burst += 2; s.dmg *= .6; } },
   { id: 'tramp',  name: 'Батут',          col: '#ce93d8', desc: 'Края карты не ранят, а только отбрасывают. +1 прыжок.', apply: s => { s.edgeImmune = true; s.airJumps += 1; } },
   { id: 'armor',  name: 'Панцирь',        col: '#90a4ae', desc: 'Получаешь на 30% меньше урона, но медленнее на 15%.', apply: s => { s.armor = Math.min(.6, s.armor + .3); s.speed *= .85; } },
   { id: 'rage',   name: 'Берсерк',        col: '#ef5350', desc: 'Стреляешь на 40% чаще, но получаешь на 20% больше урона.', apply: s => { s.fireDelay /= 1.4; s.dmgTaken *= 1.2; } },
   { id: 'meteor', name: 'Метеор',         col: '#ff8a65', desc: 'Пули тяжёлые: падают быстрее, но +60% урона и крупнее.', apply: s => { s.bGrav *= 2.5; s.dmg *= 1.6; s.bR *= 1.3; } },
-  { id: 'wave',   name: 'Волна',          col: '#4dd0e1', desc: 'Щит отбрасывает всех врагов рядом.', apply: s => { s.wave = true; }, unique: true },
-  { id: 'longsh', name: 'Долгий щит',     col: '#b2ebf2', desc: 'Щит держится вдвое дольше.', apply: s => { s.blockDur *= 2; } },
+  { id: 'wave',   name: 'Волна',          col: '#4dd0e1', desc: 'Щит отбрасывает всех врагов рядом. Перезарядка щита +0,8 с.', apply: s => { s.wave = true; s.blockCd += .8; }, unique: true },
+  { id: 'longsh', name: 'Долгий щит',     col: '#b2ebf2', desc: 'Щит держится на 60% дольше, но перезаряжается на 1,5 с дольше.', apply: s => { s.blockDur *= 1.6; s.blockCd += 1.5; } },
   { id: 'martyr', name: 'Прощальный хлопок', col: '#ff7043', desc: 'Погибая, ты взрываешься (радиус 130).', apply: s => { s.martyr = true; }, unique: true },
   { id: 'refund', name: 'Самозарядка',    col: '#fff59d', desc: 'Каждое попадание возвращает патрон.', apply: s => { s.refund = true; }, unique: true },
   { id: 'giant',  name: 'Великан',        col: '#8d6e63', desc: '+80% здоровья, +20% урона, шарик огромный и медленный.', apply: s => { s.hpMul *= 1.8; s.dmg *= 1.2; s.size *= 1.4; s.speed *= .85; } },
@@ -298,8 +298,9 @@ function genLevel(seed) {
   const rects = [], mirror = (x, w) => W - x - w;
   const addPair = (x, y, w, h) => { if (x + w >= W / 2 - 4) { const cw = Math.max(w, 120); rects.push([W / 2 - cw / 2, y, cw, h]); return [[W / 2 - cw / 2, y, cw, h]]; } rects.push([x, y, w, h], [mirror(x, w), y, w, h]); return [[x, y, w, h]]; };
   const ft = R(); let base, baseY;
-  if (ft < .68) { rects.push([0, 680, W, 40]); base = [[0, 680, W / 2, 40]]; baseY = 680; }
-  else if (ft < .88) { const g = ri(150, 260); base = addPair(0, 680, W / 2 - g / 2, 40); baseY = 680; }
+  if (ft < .3) { rects.push([0, 680, W, 40]); base = [[0, 680, W / 2, 40]]; baseY = 680; }
+  else if (ft < .48) { const g = ri(150, 260); base = addPair(0, 680, W / 2 - g / 2, 40); baseY = 680; }
+  else if (ft < .65) { const a = ri(220, 380), g = ri(130, 190); base = addPair(0, 680, a, 40).concat(addPair(a + g, 680, W / 2 - a - g, 40)); baseY = 680; }
   else { baseY = ri(590, 630); base = addPair(ri(50, 140), baseY, ri(230, 360), 30); if (R() < .6) rects.push([W / 2 - 80, baseY - ri(0, 40), 160, 24]); }
   const tiers = [base]; let y = baseY;
   while (true) {
@@ -558,7 +559,10 @@ class Player {
     this.cards = []; this.wins = 0; this.ai = { t: 0, pref: 380, jit: 0, jcd: 0, err: 0, seen: 0, judged: new WeakSet() };
     this.recalc();
   }
-  recalc() { const s = baseStats(); for (const c of this.cards) c.apply(s); this.st = s; this.r = 18 * s.size; this.maxHp = Math.round(100 * s.hpMul); }
+  recalc() { const s = baseStats(); for (const c of this.cards) c.apply(s);
+    // щит никогда не держится долго и не перезаряжается мгновенно: не больше четверти времени под защитой
+    s.blockDur = Math.min(s.blockDur, .8); s.blockCd = Math.max(s.blockCd, 1.4, s.blockDur * 4);
+    this.st = s; this.r = 18 * s.size; this.maxHp = Math.round(100 * s.hpMul); }
   spawn(x, y) {
     Object.assign(this, { x, y, vx: 0, vy: 0, hp: this.maxHp, ammo: this.st.ammo, reloadT: 0, fireT: 0, blockCd: 0, blockT: 0,
       dead: false, air: this.st.airJumps, coyote: 0, onGround: false, wall: 0, lastShot: -9, flash: 0, aim: this.idx === 0 ? 0 : Math.PI, squash: 0,
@@ -779,6 +783,7 @@ function shoot(p, aim, count, dmgMul, silent) {
   for (let i = 0; i < count; i++) {
     const a = aim + (count > 1 ? (i - (count - 1) / 2) * s.spread : 0) + rnd(-.02, .02);
     const c = Math.cos(a), sn = Math.sin(a);
+    if (!s.ghost && !lineClear(p.x, p.y, p.x + c * (p.r + 4 + s.bR), p.y + sn * (p.r + 4 + s.bR))) { burst(p.x + c * p.r, p.y + sn * p.r, p.color, 4, 120, 3, 0); continue; }
     bullets.push({ x: p.x + c * (p.r + 4), y: p.y + sn * (p.r + 4), vx: c * s.bSpeed, vy: sn * s.bSpeed, r: s.bR, owner: p,
       dmg: s.dmg * dmgMul, bounces: s.bounces, bounced: false, life: 3.5, t: 0, grav: s.bGrav, ghost: s.ghost,
       homing: s.homing, explode: s.explode, knock: s.knock, ls: s.lifesteal, col: p.color, trail: [],
@@ -1174,8 +1179,9 @@ function draw() {
     ctx.strokeStyle = '#ffc940'; ctx.lineCap = 'round';
     for (let i = 2; i < b.trail.length; i += 2) { ctx.globalAlpha = i / b.trail.length * .4; ctx.lineWidth = b.r * .9 * i / b.trail.length; ctx.beginPath(); ctx.moveTo(b.trail[i - 2], b.trail[i - 1]); ctx.lineTo(b.trail[i], b.trail[i + 1]); ctx.stroke(); }
     ctx.globalAlpha = 1;
-    ctx.fillStyle = '#ffe14d'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill();
-    ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (b.ghost) ctx.globalAlpha = .6; // пули «Призрака» видно: они бледно-фиолетовые и летят сквозь стены
+    ctx.fillStyle = b.ghost ? '#d9ccff' : '#ffe14d'; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill();
+    ctx.strokeStyle = b.ghost ? '#7e57c2' : '#b8860b'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.globalAlpha = 1;
   }
   // игроки
   for (const p of players) if (!p.dead) drawPlayer(p);
@@ -1985,7 +1991,7 @@ function netTick(t) {
       of: game.phase === 'pick' ? game.offer.map(c => c.id) : [], sel: game.sel,
       P: players.map(p => [r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), r1(p.aim * 100) / 100, r1(p.hp), p.maxHp, p.ammo, r1(p.reloadT), r1(p.blockT), r1(p.blockCd),
         p.dead ? 1 : 0, p.wins, p.cards.map(c => c.id).join(','), p.flash > 0 ? 1 : 0, r1(p.fireT), r1(p.squash), p.bot ? 1 : 0, (p.slowT > 0 ? 1 : 0) | (p.poisonT > 0 ? 2 : 0)]),
-      B: bullets.map(b => [r1(b.x), r1(b.y), Math.round(b.vx), Math.round(b.vy), r1(b.r), b.owner.idx]),
+      B: bullets.map(b => [r1(b.x), r1(b.y), Math.round(b.vx), Math.round(b.vy), r1(b.r), b.owner.idx, b.ghost ? 1 : 0]),
       O: packProps(),
       ev: net.ev,
     });
@@ -2027,9 +2033,9 @@ function applySnap(m) {
     p.slowT = a[18] & 1 ? 1 : 0; p.poisonT = a[18] & 2 ? 1 : 0;
   });
   unpackProps(m.O);
-  bullets = (m.B || []).map(([x, y, vx, vy, r, o]) => {
+  bullets = (m.B || []).map(([x, y, vx, vy, r, o, gh]) => {
     const tr = []; for (let k = 4; k >= 1; k--) tr.push(x - vx * k * .006, y - vy * k * .006);
-    return { x, y, vx, vy, r, col: (players[o] || players[0]).color, trail: tr };
+    return { x, y, vx, vy, r, ghost: !!gh, col: (players[o] || players[0]).color, trail: tr };
   });
   for (const e of m.ev || []) {
     if (e[0] === 'b') burst(e[1], e[2], e[3], Math.min(60, e[4]), e[5], e[6], e[7]);
@@ -2047,7 +2053,8 @@ function guestUpdate(dt) {
     p.x += (p.tx + p.vx * .03 - p.x) * k; p.y += (p.ty + p.vy * .03 - p.y) * k;
     p.flash -= dt;
   }
-  for (const b of bullets) { b.x += b.vx * dt; b.y += b.vy * dt; }
+  for (const b of bullets) { if (b.dead) continue; const st = Math.max(1, Math.ceil(Math.hypot(b.vx, b.vy) * dt / 4)); for (let k = 0; k < st; k++) { b.x += b.vx * dt / st; b.y += b.vy * dt / st; if (!b.ghost && inRects(b.x, b.y)) { b.dead = true; break; } } }
+  bullets = bullets.filter(b => !b.dead);
   const me = players[net.me];
   if (me && !me.dead) {
     if (mouse.used) me.aim = Math.atan2(mouse.y - me.y, mouse.x - me.x);
