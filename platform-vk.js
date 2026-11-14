@@ -25,6 +25,15 @@
           .then(() => { emit('game_api_resume'); c.onClose && c.onClose(true); })
           .catch(() => { emit('game_api_resume'); c.onClose && c.onClose(false); });
       },
+      // реклама за награду (кнопка «Другие карты за рекламу»)
+      showRewardedVideo({ callbacks = {} } = {}) {
+        const c = callbacks;
+        if (!B || !ready) { c.onError && c.onError(); return; }
+        B.send('VKWebAppCheckNativeAds', { ad_format: 'reward' })
+          .then(r => { if (!r || !r.result) throw 0; emit('game_api_pause'); c.onOpen && c.onOpen(); return B.send('VKWebAppShowNativeAds', { ad_format: 'reward' }); })
+          .then(r => { emit('game_api_resume'); if (r && r.result) c.onRewarded && c.onRewarded(); c.onClose && c.onClose(); })
+          .catch(() => { emit('game_api_resume'); c.onClose && c.onClose(); });
+      },
     },
   };
 
