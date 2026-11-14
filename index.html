@@ -875,7 +875,7 @@ function shoot(p, aim, count, dmgMul, silent) {
     const c = Math.cos(a), sn = Math.sin(a);
     if (!s.ghost && !lineClear(p.x, p.y, p.x + c * (p.r + 4 + s.bR), p.y + sn * (p.r + 4 + s.bR))) { burst(p.x + c * p.r, p.y + sn * p.r, p.color, 4, 120, 3, 0); continue; }
     bullets.push({ x: p.x + c * (p.r + 4), y: p.y + sn * (p.r + 4), vx: c * s.bSpeed, vy: sn * s.bSpeed, r: s.bR, owner: p,
-      dmg: s.dmg * dmgMul, bounces: s.bounces, bounced: false, life: 3.5, t: 0, grav: s.bGrav, ghost: s.ghost,
+      dmg: s.dmg * dmgMul, bounces: s.bounces, bounced: false, life: s.homing ? 1.8 : 3.5, t: 0, grav: s.bGrav, ghost: s.ghost,
       homing: s.homing, explode: s.explode, knock: s.knock, rocket: s.rocket, ls: s.lifesteal, col: p.color, trail: [],
       slow: s.slow, poison: s.poison, pierce: s.pierce, split: s.split, grow: s.grow, refund: s.refund, hitSet: null });
   }
@@ -918,7 +918,7 @@ function updateBullets(dt) {
       if (Math.random() < .7) parts.push({ x: b.x - c * b.r * 3, y: b.y - sn * b.r * 3, vx: -c * rnd(150, 300) + rnd(-40, 40), vy: -sn * rnd(150, 300) + rnd(-40, 40), life: rnd(.15, .3), size: rnd(2, 4), col: Math.random() < .5 ? '#ffd27a' : '#ff7b2e', grav: 0 });
       b.trail.length = 0; continue;
     }
-    if (b.homing && b.t > .1) {
+    if (b.homing && b.t > .1 && b.t < 1.3) { // наводится только первые 1,3 с, живёт не дольше 1,8 с
       // наводится только на видимого врага и только впереди себя; сквозь стены (Призрак) — вдвое слабее
       const tg = nearestEnemy(b.owner, b.x, b.y);
       if (tg && !tg.dead && lineClear(b.x, b.y, tg.x, tg.y)) {
@@ -977,7 +977,7 @@ function updateBullets(dt) {
     }
     if (b.bounces > 0 && (b.x < 0 || b.x > AW)) { b.vx = -b.vx; b.x = clamp(b.x, 0, AW); b.bounces--; b.bounced = true; }
     if (b.x < -150 || b.x > AW + 150 || b.y > AH + 150 || b.y < -2000) b.dead = true;
-    if (b.life <= 0 && !b.dead && !b.stuck) { b.dead = true; if (b.explode) explodeAt(b); }
+    if (b.life <= 0 && !b.dead && !b.stuck) { burst(b.x, b.y, b.col, 5, 120, 2, 0); b.dead = true; if (b.explode) explodeAt(b); }
   }
   bullets = bullets.filter(b => !b.dead);
 }
