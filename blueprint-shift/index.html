@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#102730">
+    <title>Чертёжная смена</title>
+    <link rel="stylesheet" href="workbench.css">
+    <script defer src="vk-bridge.min.js"></script>
+    <script defer src="levels.js"></script>
+    <script defer src="platform.js"></script>
+    <script defer src="workbench.js"></script>
+</head>
+<body>
+<main>
+    <header>
+        <div><p class="category">ЧЕРТЁЖНАЯ СМЕНА</p><h1 id="job"></h1></div>
+        <div class="meters"><span>Заказ <b id="level"></b></span><span>Ходы <b id="moves"></b></span></div>
+    </header>
+    <section class="panel" aria-labelledby="assembly-title">
+        <div class="section-head"><h2 id="assembly-title">Сборочный стол</h2><span id="progress"></span></div>
+        <p class="instructions">Переноси крайнюю правую деталь. Повтори чертёж слева направо. Лотки принимают любые детали.</p>
+        <div id="stations" class="stations"></div>
+        <div id="trays" class="trays" aria-label="Лотки"></div>
+    </section>
+    <p id="status" class="status" aria-live="polite"></p>
+    <div class="actions">
+        <button id="undo" type="button">Отменить</button>
+        <button id="hint" type="button">Подсказка</button>
+        <button id="restart" type="button">Заново</button>
+        <button id="reward" type="button" hidden>Реклама · выполнить 1 ход</button>
+        <button id="next" type="button" hidden>Следующий заказ →</button>
+    </div>
+</main>
+</body>
+</html>
