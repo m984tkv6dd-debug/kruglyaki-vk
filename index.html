@@ -95,15 +95,15 @@ let isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 const TB = {
   left:  { x: 95,   y: 630, r: 58, label: '◀' },
   right: { x: 235,  y: 630, r: 58, label: '▶' },
-  jump:  { x: 1175, y: 600, r: 66, label: '▲' },
-  block: { x: 1040, y: 650, r: 48, label: '◯' },
+  jump:  { x: 1185, y: 625, r: 74, label: '▲' },
+  block: { x: 1045, y: 668, r: 54, label: '◯' },
   pause: { x: 1236, y: 40,  r: 28, label: 'II' },
 };
 const touches = new Map(); // id -> {role, x, y}
 const touchPressed = new Set();
 function touchRole(x, y) {
   for (const k of ['jump','block','pause']) { const b = TB[k]; if (Math.hypot(x - b.x, y - b.y) < b.r + 14) return k; }
-  if (x < W * 0.33 && y > H * 0.45) return x < (TB.left.x + TB.right.x) / 2 ? 'left' : 'right';
+  if (x < W * 0.4 && y > H * 0.35) return 'stick';
   return 'aim';
 }
 function onTouch(e, type) {
@@ -113,13 +113,20 @@ function onTouch(e, type) {
     if (game.scene === 'arenaEdit') { mouse.x = p.x; mouse.y = p.y; if (type === 'start') { mouse.down = true; mouse.clicked = true; } else if (type !== 'move') mouse.down = false; continue; }
     if (type === 'start') {
       const role = touchRole(p.x, p.y);
-      touches.set(t.identifier, { role, x: p.x, y: p.y });
+      touches.set(t.identifier, { role, x: p.x, y: p.y, ox: p.x, oy: p.y, jumped: false });
       touchPressed.add(role);
       mouse.x = p.x; mouse.y = p.y; mouse.clicked = true;
     } else if (type === 'move') {
       const o = touches.get(t.identifier); if (!o) continue;
       o.x = p.x; o.y = p.y;
-      if (o.role === 'left' || o.role === 'right') o.role = p.x < (TB.left.x + TB.right.x) / 2 ? 'left' : 'right';
+      if (o.role === 'aim') { const dx = p.x - o.ox, dy = p.y - o.oy, d = Math.hypot(dx, dy); if (d > STICK_R) { o.ox = p.x - dx / d * STICK_R; o.oy = p.y - dy / d * STICK_R; } }
+      if (o.role === 'stick') { // стик плавающий: основание там, где коснулись, и подтягивается за пальцем
+        const dx = p.x - o.ox, dy = p.y - o.oy, d = Math.hypot(dx, dy), R = STICK_R;
+        if (d > R) { o.ox = p.x - dx / d * R; o.oy = p.y - dy / d * R; }
+        // резкий толчок стика вверх — прыжок (кнопка ▲ тоже работает)
+        if (p.y - o.oy < -STICK_R * .7 && !o.jumped) { o.jumped = true; touchPressed.add('jump'); }
+        else if (p.y - o.oy > -STICK_R * .35) o.jumped = false;
+      }
     } else touches.delete(t.identifier);
   }
 }
@@ -127,11 +134,13 @@ cv.addEventListener('touchstart', e => onTouch(e, 'start'), { passive: false });
 cv.addEventListener('touchmove', e => onTouch(e, 'move'), { passive: false });
 cv.addEventListener('touchend', e => onTouch(e, 'end'), { passive: false });
 cv.addEventListener('touchcancel', e => onTouch(e, 'end'), { passive: false });
+const STICK_R = 60, STICK_HOME = { x: 165, y: 600 };
+// правый стик: направление — прицел, удержание — огонь; простое касание без сдвига — автоприцел в ближайшего врага
+function touchAim(p, t) { const dx = t.x - t.ox, dy = t.y - t.oy; return Math.hypot(dx, dy) > 14 ? Math.atan2(dy, dx) : autoAim(p, 0); }
 function touchState() {
   const s = { left: false, right: false, aim: null };
   for (const t of touches.values()) {
-    if (t.role === 'left') s.left = true;
-    if (t.role === 'right') s.right = true;
+    if (t.role === 'stick') { const dx = t.x - t.ox; if (dx < -STICK_R * .25) s.left = true; if (dx > STICK_R * .25) s.right = true; s.stick = t; s.up = t.y - t.oy < -STICK_R * .35; }
     if (t.role === 'aim') s.aim = t;
   }
   return s;
@@ -711,9 +720,9 @@ function humanInput(p, scheme) {
       const t = touchState();
       inp.left = inp.left || t.left; inp.right = inp.right || t.right;
       inp.jump = inp.jump || touchPressed.has('jump');
-      inp.jumpHeld = inp.jumpHeld || [...touches.values()].some(o => o.role === 'jump');
+      inp.jumpHeld = inp.jumpHeld || t.up || [...touches.values()].some(o => o.role === 'jump');
       inp.block = inp.block || touchPressed.has('block');
-      if (t.aim) { inp.aim = Math.atan2(t.aim.y * AK - p.y, t.aim.x * AK - p.x); inp.fire = true; }
+      if (t.aim) { inp.aim = touchAim(p, t.aim); inp.fire = true; }
       else if (!mouse.down) inp.fire = inp.fire && !isTouch;
     }
   } else {
@@ -1601,7 +1610,15 @@ function drawHUD() {
   if (!isTouch && game.phase !== 'pick') { ctx.font = '13px Verdana, sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fillText('Esc — пауза, M — звук', 14, H - 12); }
 }
 function drawTouch() {
-  for (const k of ['left', 'right', 'jump', 'block', 'pause']) {
+  // стик ходьбы
+  const st = touchState().stick, bx = st ? st.ox : STICK_HOME.x, by = st ? st.oy : STICK_HOME.y;
+  let kx = 0, ky = 0; if (st) { kx = st.x - st.ox; ky = st.y - st.oy; const d = Math.hypot(kx, ky); if (d > STICK_R) { kx *= STICK_R / d; ky *= STICK_R / d; } }
+  ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.beginPath(); ctx.arc(bx, by, STICK_R + 14, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 2; ctx.stroke();
+  text('◀', bx - STICK_R + 2, by + 2, 18, 'rgba(255,255,255,.35)'); text('▶', bx + STICK_R - 2, by + 2, 18, 'rgba(255,255,255,.35)');
+  ctx.fillStyle = st ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.3)'; ctx.beginPath(); ctx.arc(bx + kx, by + ky, 30, 0, 7); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.stroke();
+  for (const k of ['jump', 'block', 'pause']) {
     const b = TB[k], on = [...touches.values()].some(t => t.role === k);
     ctx.fillStyle = on ? 'rgba(255,255,255,.35)' : 'rgba(255,255,255,.14)';
     ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill();
@@ -1609,8 +1626,12 @@ function drawTouch() {
     text(b.label, b.x, b.y + 2, k === 'pause' ? 18 : 34, 'rgba(255,255,255,.85)');
   }
   const t = touchState().aim;
-  if (t) { ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(t.x, t.y, 22, 0, 7); ctx.stroke(); }
-  else if (game.phase === 'countdown') text('Касание справа — прицел и огонь', W * .66, 470, 20, 'rgba(255,255,255,.6)');
+  if (t) {
+    let ax = t.x - t.ox, ay = t.y - t.oy; const d = Math.hypot(ax, ay); if (d > STICK_R) { ax *= STICK_R / d; ay *= STICK_R / d; }
+    ctx.fillStyle = 'rgba(255,120,90,.12)'; ctx.beginPath(); ctx.arc(t.ox, t.oy, STICK_R + 14, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,170,140,.45)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = 'rgba(255,150,120,.55)'; ctx.beginPath(); ctx.arc(t.ox + ax, t.oy + ay, 28, 0, 7); ctx.fill();
+  } else if (game.phase === 'countdown') text('Стик справа — прицел и огонь (касание — автоприцел)', W * .62, 470, 20, 'rgba(255,255,255,.6)');
 }
 // анимированные картинки на картах: маленькая сценка того, что делает карта
 function drawCardIcon(card, cx, cy, R, t) {
@@ -1710,7 +1731,7 @@ function drawMenu() {
   text('Бои шариков с улучшениями', W / 2, 232, 24, 'rgba(255,255,255,.8)', 'center', 'normal');
   ctx.font = '15px Verdana, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = 'rgba(255,255,255,.6)';
   const help = isTouch
-    ? ['◀ ▶ — ходьба, ▲ — прыжок, ◯ — щит, касание справа — прицел и огонь']
+    ? ['Стик слева — ходьба (толчок вверх — прыжок), ▲ — прыжок, ◯ — щит, стик справа — прицел и огонь']
     : ['A/D — ходьба, W/Пробел — прыжок, мышь — прицел, ЛКМ — огонь, ПКМ/Shift — щит',
        'До 4 игроков: боты, стрелки и геймпады. Шарики одного цвета — одна команда.',
        'Проигравшие раунд выбирают карту улучшения. Побеждает тот, кто первым выиграет 5 раундов.'];
@@ -2384,7 +2405,7 @@ function guestUpdate(dt) {
   const me = players[net.me];
   if (me && !me.dead) {
     if (mouse.used) me.aim = Math.atan2(mouse.y * AK - me.y, mouse.x * AK - me.x);
-    const t = touchState().aim; if (t) me.aim = Math.atan2(t.y * AK - me.y, t.x * AK - me.x);
+    const t = touchState().aim; if (t) me.aim = touchAim(me, t);
   }
   if (game.phase === 'pick') updatePick(dt);
 }
